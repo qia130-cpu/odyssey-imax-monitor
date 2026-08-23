@@ -1,0 +1,55 @@
+name: Odyssey IMAX Monitor
+
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub Actions minimum interval is 5 minutes.
+    # Offset from minute 0 to reduce top-of-hour congestion.
+    - cron: '3-58/5 * * * *'
+      timezone: "Asia/Shanghai"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: odyssey-imax-monitor
+  cancel-in-progress: true
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check weekend IMAX showtimes
+        env:
+          SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
+          # Optional: only add this Secret if Maoyan later starts requiring your browser cookie.
+          MAOYAN_COOKIE: ${{ secrets.MAOYAN_COOKIE }}
+          CHECK_DAYS: '28'
+        run: python monitor.py
+
+      - name: Persist de-duplication state
+        run: |
+          if git diff --quiet -- state.json; then
+            echo "state.json unchanged"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state.json
+          git commit -m "chore: update IMAX monitor state"
+          git push
