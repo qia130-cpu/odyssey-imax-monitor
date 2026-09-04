@@ -118,6 +118,13 @@
       "language": "英语",
       "time": "19:40",
       "version": "IMAX2D"
+    },
+    "42020|1545360|2026-09-06|23:00|英语|IMAX2D|激光IMAX厅-儿童需购票": {
+      "date": "2026-09-06",
+      "hall": "激光IMAX厅-儿童需购票",
+      "language": "英语",
+      "time": "23:00",
+      "version": "IMAX2D"
     }
   }
 }
